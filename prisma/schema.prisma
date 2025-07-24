@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:password@localhost:5432/pantrikita_db"
+}
+
+model User {
+  id                String   @id @default(uuid())
+  username          String   @unique
+  email             String   @unique
+  google_id         String?
+  password          String
+  is_verified_email Boolean  @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  items         Item[]
+  saved_recipes SavedRecipe[]
+  notifications Notification[]
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  email      String
+  otp        String
+  expired_at DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model SavedRecipe {
+  id                String   @id @default(uuid())
+  user_id           String
+  title             String
+  description       String
+  difficulty        String
+  cultural_heritage String
+  location          String
+  cook_time         String
+  servings_portion  String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user         User                     @relation(fields: [user_id], references: [id])
+  ingredients  SavedRecipeIngredient[]
+  instructions SavedRecipeInstruction[]
+}
+
+model SavedRecipeIngredient {
+  id              String   @id @default(uuid())
+  saved_recipe_id String
+  name            String
+  is_check        Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  saved_recipe SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+}
+
+model SavedRecipeInstruction {
+  id              String      @id @default(uuid())
+  saved_recipe_id String
+  instruction     String
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  saved_recipe    SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  user_id     String
+  title       String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+}
+
+model ItemUseEverything {
+  id String @id @default(uuid())
+
+  item_id     String
+  title       String
+  description String
+  cook_time   String
+  difficulty  String
+  ingredient  String
+  instruction String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  item Item @relation(fields: [item_id], references: [id])
+}
+
+model ItemRecipe {
+  id String @id @default(uuid())
+
+  item_id     String
+  title       String
+  description String
+  difficulty  String
+  cook_time   String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  item Item @relation(fields: [item_id], references: [id])
+}
+
+model ItemComposting {
+  id String @id @default(uuid())
+
+  item_id              String
+  environmental_impact String
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  item   Item                  @relation(fields: [item_id], references: [id])
+  orders ItemCompostingOrder[]
+}
+
+model ItemCompostingOrder {
+  id                 String   @id @default(uuid())
+  item_composting_id String
+  description        String
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  item_composting ItemComposting @relation(fields: [item_composting_id], references: [id])
+}
+
+model Item {
+  id            String       @id @default(uuid())
+  user_id       String
+  name          String
+  category      ItemCategory
+  expiring_date DateTime
+  location      String
+  status        ItemStatus
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  user           User                @relation(fields: [user_id], references: [id])
+  use_everything ItemUseEverything[]
+  composting     ItemComposting[]
+  recipe         ItemRecipe[]
+}
+
+enum ItemCategory {
+  FRUIT
+  VEGETABLE
+  MEAT
+  DAIRY
+  GRAINS
+  SEAFOOD
+}
+
+enum ItemStatus {
+  CONSUMED
+  COMPOST
+  THROWN
+  NOTHING
+}
