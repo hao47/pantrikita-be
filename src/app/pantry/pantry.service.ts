@@ -1,28 +1,29 @@
-import {
-    Injectable,
-
-} from '@nestjs/common';
+import {Injectable, UnprocessableEntityException,} from '@nestjs/common';
 
 
-import { PrismaService } from '../../prisma/prisma.service';
+import {PrismaService} from '../../prisma/prisma.service';
 
 import Constants from '../../constants';
-import { capitalizeFirstLetter, ExpiredStatus } from '../../helper/format-to-locale-date';
-import { ItemCategory } from '@prisma/client';
-import {CommonResponseDto} from "../../dtos/common-response-dto";
+import {getExpiredStatus} from '../../helper/format-to-locale-date';
+import {ItemCategory, Prisma} from '@prisma/client';
+import {CommonResponseCreateDto, CommonResponseDto} from "../../dtos/common-response-dto";
 import {ItemParamDto} from "../../dtos/item-param-dto";
 import {add} from "date-fns";
+import PantryMapper from "./mapper/pantry.mapper";
+import {UpdatePantryDTO} from "./dtos/update-pantry.dto";
+import path from "path";
+import fs from "fs";
+import {StatusFormat} from "../../enums/db-alias.enum";
 
 
 @Injectable()
 export class PantryService {
     constructor(
         private prisma: PrismaService,
-
     ) {
     }
 
-    async findAll(userId:string, query: ItemParamDto): Promise<CommonResponseDto> {
+    async findAll(userId: string, query: ItemParamDto): Promise<CommonResponseDto> {
 
         const validCategories = Object.values(ItemCategory);
         const inputCategory = query.categories?.toUpperCase();
@@ -30,7 +31,7 @@ export class PantryService {
 
 
         const now = new Date();
-        const sevenDaysLater = add(now, { days: 7 });
+        const sevenDaysLater = add(now, {days: 7});
 
         let expiringDateFilter: any = undefined;
 
@@ -56,24 +57,23 @@ export class PantryService {
 
         switch (query.filter) {
             case 'expiry_date':
-                sortBy = { expiring_date: 'asc' };
+                sortBy = {expiring_date: 'asc'};
                 break;
             case 'name':
-                sortBy = { name: 'asc' };
+                sortBy = {name: 'asc'};
                 break;
             case 'category':
-                sortBy = { category: 'asc' };
+                sortBy = {category: 'asc'};
                 break;
             case 'date_added':
-                sortBy = { created_at: 'desc' };
+                sortBy = {created_at: 'desc'};
                 break;
             default:
-                sortBy = { expiring_date: 'asc' }; // default sorting
+                sortBy = {expiring_date: 'asc'}; // default sorting
         }
 
 
-
-        const [item, total,item_header] = await Promise.all([
+        const [item, total, item_header] = await Promise.all([
             this.prisma.item.findMany({
                 where: {
                     user_id: userId,
@@ -81,7 +81,7 @@ export class PantryService {
                         contains: query.search, mode: 'insensitive',
                     },
                     category: isValidCategory ? inputCategory as ItemCategory : {},
-                    ...(query.status ? { expiring_date: expiringDateFilter } : {}),
+                    ...(query.status ? {expiring_date: expiringDateFilter} : {}),
                 },
                 orderBy: sortBy,
             }),
@@ -103,7 +103,7 @@ export class PantryService {
                 status: item.status.toLocaleLowerCase(),
                 category: item.category.toLocaleLowerCase(),
                 icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === item.category.toLowerCase())?.icon,
-                expired: ExpiredStatus(item.expiring_date),
+                expired: getExpiredStatus(item.expiring_date,StatusFormat.SIMPLE),
             };
         });
 
@@ -117,10 +117,9 @@ export class PantryService {
                 status: item.status.toLocaleLowerCase(),
                 category: item.category.toLocaleLowerCase(),
                 icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === item.category.toLowerCase())?.icon,
-                expired: ExpiredStatus(item.expiring_date),
+                expired: getExpiredStatus(item.expiring_date,StatusFormat.SIMPLE),
             };
         });
-
 
 
         return {
@@ -138,6 +137,276 @@ export class PantryService {
         };
     }
 
+
+    async findId(id: string): Promise<any> {
+
+        const item = await this.prisma.item.findUnique({
+            where: {
+                id: id.toString(),
+            },
+            select: {
+                name: true,
+                use_everything: true,
+            },
+        });
+
+
+        if ((item?.use_everything?.length ?? 0) > 0) {
+            const itemDetail = await this.prisma.item.findUnique({
+                where: {
+                    id: id.toString(),
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    category: true,
+                    status: true,
+                    expiring_date: true,
+                    location: true,
+                    use_everything: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            cook_time: true,
+                            difficulty: true,
+                            ingredient: true,
+                            instruction: true,
+                        },
+                    },
+                    composting: {
+                        select: {
+                            environmental_impact: true,
+                            orders: true,
+                        },
+                    },
+                    recipe: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            difficulty: true,
+                            cook_time: true,
+                        },
+                    },
+                },
+            });
+
+            const headerStatus = getExpiredStatus(itemDetail!.expiring_date, StatusFormat.HEADER);
+            const detailedStatus = getExpiredStatus(itemDetail!.expiring_date, StatusFormat.DETAILED);
+
+
+            const itemDetailFormat = {
+                id: itemDetail?.id,
+                icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === itemDetail?.category.toLowerCase())?.icon,
+                name: itemDetail?.name,
+                category: itemDetail?.category,
+                header_status: headerStatus,
+                body_status: detailedStatus,
+                location: itemDetail?.location,
+                recipe: itemDetail?.recipe,
+                use_everything: itemDetail?.use_everything,
+                composting: {
+                    enviromental_impact: itemDetail?.composting[0].environmental_impact,
+                    orders: itemDetail?.composting[0].orders.map(itemfood => itemfood.description),
+                },
+
+            };
+
+            return {
+                status: 'Success get Item Detail',
+                data: itemDetailFormat,
+            };
+
+
+        } else {
+
+            const filePath = path.join(process.cwd(), 'initial_pantry.txt');
+
+
+            let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
+            let inputItem = item?.name;
+
+
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    'model': 'openai/gpt-4o-mini',
+                    'messages': [
+                        {
+                            'role': 'system',
+                            'content': initialPrompt,
+                        },
+                        {
+                            'role': 'user',
+                            'content': inputItem,
+                        },
+
+                    ],
+                }),
+            });
+
+            const data = await response.json();
+            const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
+
+
+            const parsed = JSON.parse(jsonString);
+
+
+            for (let i = 0; i < parsed["suggestedRecipes"].length; i++) {
+                await this.prisma.itemRecipe.create({
+                    data: {
+
+                        item: {
+                            connect: {
+                                id: id,
+                            },
+                        },
+                        title: parsed['suggestedRecipes'][i].title,
+                        description: parsed['suggestedRecipes'][i].description,
+                        cook_time: parsed['suggestedRecipes'][i].time,
+                        difficulty: parsed['suggestedRecipes'][i].difficulty,
+                    },
+                });
+            }
+
+            for (let i = 0; i < parsed["zeroWasteRecipes"].length; i++) {
+                await this.prisma.itemUseEverything.create({
+                    data: {
+
+                        item: {
+                            connect: {
+                                id: id,
+                            },
+                        },
+                        title: parsed['zeroWasteRecipes'][i].title,
+                        description: parsed['zeroWasteRecipes'][i].description,
+                        cook_time: parsed['zeroWasteRecipes'][i].time,
+                        difficulty: parsed['zeroWasteRecipes'][i].difficulty,
+                        ingredient: parsed['zeroWasteRecipes'][i].ingredients,
+                        instruction: parsed['zeroWasteRecipes'][i].instructions,
+                    },
+                });
+            }
+
+
+            const item_composting_id = await this.prisma.itemComposting.create({
+                data: {
+                    environmental_impact: parsed['compostingGuide']['environmentalImpact'],
+
+                    item: {
+                        connect: {
+                            id: id,
+                        },
+                    },
+                },
+            });
+
+            for (let i = 0; i < parsed["compostingGuide"]["tips"].length; i++) {
+                await this.prisma.itemCompostingOrder.create({
+                    data: {
+                        item_composting: {
+                            connect: {
+                                id: item_composting_id.id,
+                            },
+                        },
+                        description: parsed['compostingGuide']['tips'][i],
+                    },
+                });
+            }
+
+            const itemDetail = await this.prisma.item.findUnique({
+                where: {
+                    id: id.toString(),
+                },
+                select: {
+                    id: true,
+                    name: true,
+                },
+            });
+
+            return {
+                status: 'Success get Item Detail',
+                data: itemDetail,
+            };
+
+
+        }
+
+    }
+
+
+    async update(id: string, dto: UpdatePantryDTO): Promise<CommonResponseCreateDto> {
+
+        try {
+            await this.prisma.$transaction(async (prisma) => {
+                let data: Prisma.ItemUpdateInput = await PantryMapper.pantryUpdateRequestDTOToPantryUpdateInput(dto);
+
+                await prisma.item.update({
+                    where: {
+                        id: id,
+                    },
+                    data,
+                });
+            });
+
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+
+                if (e.code === 'P3000') {
+                    throw new UnprocessableEntityException('Failed to update Item');
+                } else if (e.code === 'P2025') {
+
+                    if (e.meta!.cause == 'Record to update not found.') {
+                        throw new UnprocessableEntityException('ID Pantry Not Found');
+                    } else {
+                        throw new UnprocessableEntityException('There is no Pantry Id Asosiated with the ID');
+                    }
+
+                }
+            }
+            throw e;
+        }
+
+
+        return {
+            message: 'successfully to update Pantry',
+        };
+    }
+
+
+    async remove(id: string): Promise<CommonResponseCreateDto> {
+
+        try {
+            await this.prisma.item.delete({
+                where: {
+                    id: id,
+                },
+            });
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                if (e.code === 'P3000') {
+                    throw new UnprocessableEntityException(
+                        'failed to remove Item',
+                    );
+                } else if (e.code === 'P2025') {
+                    throw new UnprocessableEntityException(
+                        'id Item Not Found',
+                    );
+                }
+            }
+            throw e;
+        }
+
+
+        return {
+            message: 'successfully to remove Pantry',
+        };
+    }
 
 
 }

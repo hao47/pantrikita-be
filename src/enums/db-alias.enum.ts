@@ -32,3 +32,10 @@ export enum Filter {
     category = 'category',
     date_added = 'date_added',
 }
+
+
+export enum StatusFormat {
+    SIMPLE = 'simple',           // ExpiredStatus
+    HEADER = 'header',           // ExpiredStatusHeaderDetail
+    DETAILED = 'detailed'        // ExpiredStatusHeaderMoreDetail
+}

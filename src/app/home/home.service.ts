@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 
 import Constants from '../../constants';
-import { capitalizeFirstLetter, ExpiredStatus } from '../../helper/format-to-locale-date';
+import { capitalizeFirstLetter, getExpiredStatus } from '../../helper/format-to-locale-date';
 import { ItemCategory } from '@prisma/client';
 
 
@@ -42,7 +42,7 @@ export class HomeService {
                 status: item.status.toLowerCase(),
                 category: capitalizeFirstLetter(item.category),
                 icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === item.category.toLowerCase())?.icon,
-                expired: ExpiredStatus(item.expiring_date),
+                expired: getExpiredStatus(item.expiring_date),
             };
         });
 

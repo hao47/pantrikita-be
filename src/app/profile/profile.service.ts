@@ -7,7 +7,7 @@ import {
 import {PrismaService} from '../../prisma/prisma.service';
 
 import Constants from '../../constants';
-import {capitalizeFirstLetter, ExpiredStatus} from '../../helper/format-to-locale-date';
+import {capitalizeFirstLetter, getExpiredStatus} from '../../helper/format-to-locale-date';
 import {ItemCategory} from '@prisma/client';
 import {CommonResponseDto} from "../../dtos/common-response-dto";
 import {isNil} from "@nestjs/common/utils/shared.utils";
@@ -53,7 +53,7 @@ export class ProfileService {
                 status: item.status.toLocaleLowerCase(),
                 category: item.category.toLocaleLowerCase(),
                 icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === item.category.toLowerCase())?.icon,
-                expired: ExpiredStatus(item.expiring_date),
+                expired: getExpiredStatus(item.expiring_date),
             };
         });
 
