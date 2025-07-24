@@ -3,9 +3,10 @@ import {AuthModule} from "./app/auth/auth.module";
 import {HomeModule} from "./app/home/home.module";
 import {ProfileModule} from "./app/profile/profile.module";
 import { ConfigModule } from '@nestjs/config';
+import {PantryModule} from "./app/pantry/pantry.module";
 
 @Module({
-  imports: [AuthModule,HomeModule,ProfileModule,ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true })],
+  imports: [AuthModule,HomeModule,ProfileModule,PantryModule],
   controllers: [],
   providers: [],
 })
