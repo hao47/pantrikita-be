@@ -20,8 +20,8 @@ import {ParamDTOPipeTransform} from "../../transforms/param-dto.pipe-transfrom";
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
-@Controller('home')
-export class HomeController {
+@Controller('pantry')
+export class PantryController {
     constructor(private pantryService: PantryService) {}
 
 

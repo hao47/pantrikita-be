@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PantryService } from './pantry.service';
-import { HomeController } from './pantry.controller';
+import { PantryController} from './pantry.controller';
 
 import { JwtModule } from '@nestjs/jwt';
 
@@ -14,6 +14,6 @@ import { PrismaModule } from '../../prisma/prisma.module';
 
     ],
     providers: [PantryService],
-    controllers: [HomeController],
+    controllers: [PantryController],
 })
 export class PantryModule {}
