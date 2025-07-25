@@ -23,9 +23,11 @@ model User {
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
-  items         Item[]
-  saved_recipes SavedRecipe[]
-  notifications Notification[]
+  items                  Item[]
+  saved_recipes          SavedRecipe[]
+  notifications          Notification[]
+  SavedRecipeIngredient  SavedRecipeIngredient[]
+  SavedRecipeInstruction SavedRecipeInstruction[]
 }
 
 model Otp {
@@ -57,6 +59,7 @@ model SavedRecipe {
 
 model SavedRecipeIngredient {
   id              String   @id @default(uuid())
+  user_id         String   @default("")
   saved_recipe_id String
   name            String
   is_check        Boolean  @default(false)
@@ -64,15 +67,20 @@ model SavedRecipeIngredient {
   updated_at      DateTime @updatedAt
 
   saved_recipe SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id])
 }
 
 model SavedRecipeInstruction {
   id              String      @id @default(uuid())
   saved_recipe_id String
   instruction     String
+  user_id         String      @default("")
   created_at      DateTime    @default(now())
   updated_at      DateTime    @updatedAt
   saved_recipe    SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+
+  user User @relation(fields: [user_id], references: [id])
 }
 
 model Notification {
