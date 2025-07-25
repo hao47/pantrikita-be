@@ -7,12 +7,13 @@ import {
     Get,
     UseGuards,
     Request,
-    Patch,
+    Patch, Param, ParseUUIDPipe,
 } from '@nestjs/common';
 import {RecipeService} from './recipe.service';
 
 import {AuthGuard} from '../auth/auth.guard';
 import {ApiBearerAuth} from '@nestjs/swagger';
+import {CommonResponseDto} from "../../dtos/common-response-dto";
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -37,10 +38,10 @@ export class RecipeController {
     }
 
     @Get(":id")
-    findId(@Request() request: any,): Promise<any> {
-        const userId: string = request.user.sub.id;
+    findId(@Param("id", ParseUUIDPipe) id: string): Promise<CommonResponseDto> {
 
-        return this.recipeService.findId(userId);
+
+        return this.recipeService.findId(id);
     }
 
 
