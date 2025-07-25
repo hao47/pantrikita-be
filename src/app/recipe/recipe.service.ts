@@ -98,7 +98,7 @@ export class RecipeService {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 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',
+                    'Authorization': 'Bearer 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',
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -309,11 +309,11 @@ export class RecipeService {
          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
              method: 'POST',
              headers: {
-                 'Authorization': 'Bearer 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',
+                 'Authorization': 'Bearer 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',
                  'Content-Type': 'application/json',
              },
              body: JSON.stringify({
-                 model: 'openai/gpt-4.1-mini',
+                 'model': 'openai/gpt-4o-mini',
                  temperature: 1.0, // Kreatifitas tinggi
                  top_p: 0.95,      // Variasi alternatif
                  messages: [
@@ -501,7 +501,7 @@ export class RecipeService {
 
             return {
                 message: 'Success regenerate',
-                data: parsed,
+                data: formatRecipes,
             };
 
 
