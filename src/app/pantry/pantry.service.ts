@@ -14,6 +14,7 @@ import {UpdatePantryDTO} from "./dtos/update-pantry.dto";
 import path from "path";
 import fs from "fs";
 import {StatusFormat} from "../../enums/db-alias.enum";
+import {generateDetailPantry} from "../../helper/ai-api-to-json";
 
 
 @Injectable()
@@ -221,40 +222,12 @@ export class PantryService {
 
         } else {
 
-            const filePath = path.join(process.cwd(), 'initial_pantry.txt');
 
-
-            let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
             let inputItem = item?.name;
 
 
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer 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',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    'model': 'openai/gpt-4o-mini',
-                    'messages': [
-                        {
-                            'role': 'system',
-                            'content': initialPrompt,
-                        },
-                        {
-                            'role': 'user',
-                            'content': inputItem,
-                        },
+            const parsed = await generateDetailPantry(inputItem!);
 
-                    ],
-                }),
-            });
-
-            const data = await response.json();
-            const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
-
-
-            const parsed = JSON.parse(jsonString);
 
 
             for (let i = 0; i < parsed["suggestedRecipes"].length; i++) {

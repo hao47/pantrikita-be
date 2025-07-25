@@ -1,8 +1,9 @@
 import {Injectable, UnprocessableEntityException} from '@nestjs/common';
 import {PrismaService} from '../../prisma/prisma.service';
 import {Prisma, SavedRecipeIngredient} from '@prisma/client';
-import {CommonResponseDto} from "../../dtos/common-response-dto";
+import {CommonResponseCreateDto, CommonResponseDto} from "../../dtos/common-response-dto";
 import {generateRecipes, regenerateRecipes} from "../../helper/ai-api-to-json";
+import {BulkUpdateSavedRecipeIngredientDto} from "./dtos/bulk-update-recipe";
 
 @Injectable()
 export class RecipeService {
@@ -496,6 +497,58 @@ export class RecipeService {
         };
 
     }
+
+
+    async update(id: string, dto: BulkUpdateSavedRecipeIngredientDto): Promise<CommonResponseCreateDto> {
+
+        try {
+            await this.prisma.$transaction(async (prisma) => {
+
+
+                const { ingredients } = dto;
+
+                const updatedIngredients: SavedRecipeIngredient[] = [];
+
+
+                for (const ingredient of ingredients) {
+                    const updated = await this.prisma.savedRecipeIngredient.update({
+                        where: {
+                            id: ingredient.id,
+                        },
+                        data: {
+                            name: ingredient.name,
+                            is_check: ingredient.is_check,
+                        },
+                    });
+
+                    updatedIngredients.push(updated);
+                }
+
+
+            });
+
+        } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+
+                if (e.code === 'P3000') {
+                    throw new UnprocessableEntityException('failed to update Recipe');
+                } else if (e.code === 'P2025') {
+
+                    if (e.meta!.cause == 'Record to update not found.') {
+                        throw new UnprocessableEntityException('id Recipe Not Found');
+                    }
+
+                }
+            }
+            throw e;
+        }
+
+
+        return {
+            message: 'successfully to update Recipe',
+        };
+    }
+
 
 
 }

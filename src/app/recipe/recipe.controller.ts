@@ -7,13 +7,14 @@ import {
     Get,
     UseGuards,
     Request,
-    Patch, Param, ParseUUIDPipe,
+    Patch, Param, ParseUUIDPipe, Put,
 } from '@nestjs/common';
 import {RecipeService} from './recipe.service';
 
 import {AuthGuard} from '../auth/auth.guard';
 import {ApiBearerAuth} from '@nestjs/swagger';
-import {CommonResponseDto} from "../../dtos/common-response-dto";
+import {CommonResponseCreateDto, CommonResponseDto} from "../../dtos/common-response-dto";
+import {BulkUpdateSavedRecipeIngredientDto} from "./dtos/bulk-update-recipe";
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -44,6 +45,11 @@ export class RecipeController {
         return this.recipeService.findId(id);
     }
 
+
+    @Put(":id")
+    update(@Param("id", ParseUUIDPipe) id: string, @Body() bulkUpdateSavedRecipeIngredientDto: BulkUpdateSavedRecipeIngredientDto): Promise<CommonResponseCreateDto> {
+        return this.recipeService.update(id,bulkUpdateSavedRecipeIngredientDto);
+    }
 
 
 }

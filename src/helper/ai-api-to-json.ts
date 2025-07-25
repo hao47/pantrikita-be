@@ -80,3 +80,44 @@ export const generateRecipes = async (formatToarray: string[]) => {
 
     return  JSON.parse(jsonString);
 };
+
+
+
+export const generateDetailPantry = async (inputItem: string) => {
+
+    const filePath = path.join(process.cwd(), 'initial_pantry.txt');
+
+
+    let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
+
+
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+
+            'Authorization': Constants.Security.OPENROUTER_AI_API,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            'model': 'openai/gpt-4o-mini',
+            'messages': [
+                {
+                    'role': 'system',
+                    'content': initialPrompt,
+                },
+                {
+                    'role': 'user',
+                    'content': inputItem,
+                },
+
+            ],
+        }),
+    });
+
+    const data = await response.json();
+    const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
+
+
+    return JSON.parse(jsonString);
+};
