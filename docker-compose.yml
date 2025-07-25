@@ -27,8 +27,15 @@ services:
             POSTGRES_DB: pantrikita_db
         volumes:
             - pgdata:/var/lib/postgresql/data
+        networks:
+            - web
+            - database
 
 volumes:
     pgdata:
 
-
+networks:
+    web:
+        external: true
+    database:
+        external: true
