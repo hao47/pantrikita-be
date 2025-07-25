@@ -98,7 +98,7 @@ export class RecipeService {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer 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',
+                    'Authorization': 'Bearer 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',
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
@@ -156,6 +156,11 @@ export class RecipeService {
                                             id: save_recipe_id.id,
                                         },
                                     },
+                                    user: {
+                                        connect: {
+                                            id: userId,
+                                        },
+                                    },
                                 },
                             });
                         }
@@ -186,6 +191,11 @@ export class RecipeService {
                                     saved_recipe: {
                                         connect: {
                                             id: save_recipe_id.id,
+                                        },
+                                    },
+                                    user: {
+                                        connect: {
+                                            id: userId,
                                         },
                                     },
                                 },
@@ -295,28 +305,30 @@ export class RecipeService {
 
 
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer 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',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'openai/gpt-4.1-mini',
-                temperature: 1.0, // Kreatifitas tinggi
-                top_p: 0.95,      // Variasi alternatif
-                messages: [
-                    {
-                        role: 'system',
-                        content: `${initialPrompt}\n\nRandomness Seed: ${Math.floor(Math.random() * 100000)}`
-                    },
-                    {
-                        role: 'user',
-                        content: `this the ingredient ${formatToarray}`,
-                    },
-                ],
-            }),
-        });
+     // try {
+         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+             method: 'POST',
+             headers: {
+                 'Authorization': 'Bearer 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',
+                 'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({
+                 model: 'openai/gpt-4.1-mini',
+                 temperature: 1.0, // Kreatifitas tinggi
+                 top_p: 0.95,      // Variasi alternatif
+                 messages: [
+                     {
+                         role: 'system',
+                         content: `${initialPrompt}\n\nRandomness Seed: ${Math.floor(Math.random() * 100000)}`
+                     },
+                     {
+                         role: 'user',
+                         content: `this the ingredient ${formatToarray}`,
+                     },
+                 ],
+             }),
+         });
+
 
 
         const data = await response.json();
@@ -324,6 +336,19 @@ export class RecipeService {
 
 
             const parsed = JSON.parse(jsonString);
+
+
+        await this.prisma.savedRecipeInstruction.deleteMany({
+            where: {
+                user_id: userId,
+            },
+        });
+
+        await this.prisma.savedRecipeIngredient.deleteMany({
+            where: {
+                user_id: userId,
+            },
+        });
 
         await this.prisma.savedRecipe.deleteMany({
             where: {
@@ -364,6 +389,13 @@ export class RecipeService {
                                             id: save_recipe_id.id,
                                         },
                                     },
+                                    user: {
+                                        connect: {
+                                            id: userId,
+                                        },
+                                    },
+
+
                                 },
                             });
                         }
@@ -394,6 +426,11 @@ export class RecipeService {
                                     saved_recipe: {
                                         connect: {
                                             id: save_recipe_id.id,
+                                        },
+                                    },
+                                    user: {
+                                        connect: {
+                                            id: userId,
                                         },
                                     },
                                 },
