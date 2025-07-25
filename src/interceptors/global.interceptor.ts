@@ -18,7 +18,7 @@ export class GlobalFileInterceptor implements NestInterceptor {
 
 
     // gara gara ini image file nya ngga bisa
-    if (request.url.includes('/scan/identify') || request.url.includes('/scan/barcode')) {
+    if (request.url.includes('/scan/identify')) {
       return next.handle();
     }
 

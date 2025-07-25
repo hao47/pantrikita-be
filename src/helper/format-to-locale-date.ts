@@ -16,6 +16,16 @@ export const capitalizeFirstLetter = (str: String) => {
 function generateOTP() {
 
 }
+
+export const FormatToIsoString = (tanggal: String | Date | string) => {
+    const manualFormat = tanggal.toString().split('-').reverse().join('-');
+
+    const normalDate = format(manualFormat, 'yyyy-MM-dd');
+
+    return new Date(normalDate).toISOString();
+};
+
+
 export const GenerateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };

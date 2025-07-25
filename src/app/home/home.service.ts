@@ -42,6 +42,7 @@ export class HomeService {
                 status: item.status.toLowerCase(),
                 category: capitalizeFirstLetter(item.category),
                 icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === item.category.toLowerCase())?.icon,
+
                 expired: getExpiredStatus(item.expiring_date),
             };
         });

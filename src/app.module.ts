@@ -6,9 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import {PantryModule} from "./app/pantry/pantry.module";
 import {RecipeModule} from "./app/recipe/recipe.module";
 import {NotificationModule} from "./app/notification/notification.module";
+import {ScanModule} from "./app/scan/scan.module";
 
 @Module({
-  imports: [AuthModule,HomeModule,ProfileModule,PantryModule,RecipeModule,NotificationModule],
+  imports: [AuthModule,HomeModule,ProfileModule,PantryModule,RecipeModule,NotificationModule,ScanModule],
   controllers: [],
   providers: [],
 })

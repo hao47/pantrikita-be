@@ -9,6 +9,7 @@ import { ApiConsumes, DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './exception-filter';
 import { GlobalFileInterceptor } from './interceptors/global.interceptor';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import {join} from "path";
 
 
 function setupConfig(app: INestApplication) {
@@ -47,6 +48,9 @@ async function bootstrap() {
     next();
   });
 
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
 
 
   setupConfig(app);

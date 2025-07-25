@@ -4,7 +4,7 @@ import {Injectable, UnprocessableEntityException,} from '@nestjs/common';
 import {PrismaService} from '../../prisma/prisma.service';
 
 import Constants from '../../constants';
-import {getExpiredStatus} from '../../helper/format-to-locale-date';
+import {FormatToLocaleDate, getExpiredStatus} from '../../helper/format-to-locale-date';
 import {ItemCategory, Prisma} from '@prisma/client';
 import {CommonResponseCreateDto, CommonResponseDto} from "../../dtos/common-response-dto";
 import {ItemParamDto} from "../../dtos/item-param-dto";
@@ -204,6 +204,7 @@ export class PantryService {
                 category: itemDetail?.category,
                 header_status: headerStatus,
                 body_status: detailedStatus,
+                expiring_date: FormatToLocaleDate(itemDetail!.expiring_date),
                 location: itemDetail?.location,
                 recipe: itemDetail?.recipe,
                 use_everything: itemDetail?.use_everything,
@@ -299,12 +300,64 @@ export class PantryService {
                 select: {
                     id: true,
                     name: true,
+                    category: true,
+                    status: true,
+                    expiring_date: true,
+                    location: true,
+                    use_everything: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            cook_time: true,
+                            difficulty: true,
+                            ingredient: true,
+                            instruction: true,
+                        },
+                    },
+                    composting: {
+                        select: {
+                            environmental_impact: true,
+                            orders: true,
+                        },
+                    },
+                    recipe: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            difficulty: true,
+                            cook_time: true,
+                        },
+                    },
                 },
             });
 
+            const headerStatus = getExpiredStatus(itemDetail!.expiring_date, StatusFormat.HEADER);
+            const detailedStatus = getExpiredStatus(itemDetail!.expiring_date, StatusFormat.DETAILED);
+
+
+            const itemDetailFormat = {
+                id: itemDetail?.id,
+                icon: Constants.FoodCategories.find(itemfood => itemfood.name.toLowerCase() === itemDetail?.category.toLowerCase())?.icon,
+                name: itemDetail?.name,
+                category: itemDetail?.category,
+                header_status: headerStatus,
+                body_status: detailedStatus,
+                expiring_date: FormatToLocaleDate(itemDetail!.expiring_date),
+                location: itemDetail?.location,
+                recipe: itemDetail?.recipe,
+                use_everything: itemDetail?.use_everything,
+                composting: {
+                    enviromental_impact: itemDetail?.composting[0].environmental_impact,
+                    orders: itemDetail?.composting[0].orders.map(itemfood => itemfood.description),
+                },
+
+            };
+
             return {
                 status: 'Success get Item Detail',
-                data: itemDetail,
+                data: itemDetailFormat,
             };
 
 

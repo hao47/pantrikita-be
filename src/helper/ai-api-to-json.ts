@@ -18,7 +18,7 @@ export const regenerateRecipes = async (formatToarray: string[]) => {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'model': 'openai/gpt-4o-mini',
+            'model': 'openai/gpt-3.5-turbo',
             messages: [
                 {
                     role: 'system',
@@ -57,7 +57,7 @@ export const generateRecipes = async (formatToarray: string[]) => {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'model': 'openai/gpt-4o-mini',
+            'model': 'openai/gpt-3.5-turbo',
             'messages': [
                 {
                     'role': 'system',
@@ -85,7 +85,7 @@ export const generateRecipes = async (formatToarray: string[]) => {
 
 export const generateDetailPantry = async (inputItem: string) => {
 
-    const filePath = path.join(process.cwd(), 'initial_pantry.txt');
+    const filePath = path.join(process.cwd(), 'initial_pantry_prompt.txt');
 
 
     let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
@@ -95,12 +95,11 @@ export const generateDetailPantry = async (inputItem: string) => {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-
             'Authorization': Constants.Security.OPENROUTER_AI_API,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'model': 'openai/gpt-4o-mini',
+            'model': 'openai/gpt-3.5-turbo',
             'messages': [
                 {
                     'role': 'system',
@@ -119,5 +118,5 @@ export const generateDetailPantry = async (inputItem: string) => {
     const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
 
 
-    return JSON.parse(jsonString);
+    return  JSON.parse(jsonString);
 };
