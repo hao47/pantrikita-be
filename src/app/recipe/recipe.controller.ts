@@ -18,7 +18,7 @@ import {ApiBearerAuth} from '@nestjs/swagger';
 @UseGuards(AuthGuard)
 @Controller('recipe')
 export class RecipeController {
-    constructor(private homeService: RecipeService) {
+    constructor(private recipeService: RecipeService) {
     }
 
 
@@ -26,15 +26,23 @@ export class RecipeController {
     findAll(@Request() request: any,): Promise<any> {
         const userId: string = request.user.sub.id;
 
-        return this.homeService.findAll(userId);
+        return this.recipeService.findAll(userId);
     }
 
     @Get("regenerate")
     regenerate(@Request() request: any,): Promise<any> {
         const userId: string = request.user.sub.id;
 
-        return this.homeService.regenerate(userId);
+        return this.recipeService.regenerate(userId);
     }
+
+    @Get(":id")
+    findId(@Request() request: any,): Promise<any> {
+        const userId: string = request.user.sub.id;
+
+        return this.recipeService.findId(userId);
+    }
+
 
 
 }

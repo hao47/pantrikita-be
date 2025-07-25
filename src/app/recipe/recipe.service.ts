@@ -510,4 +510,58 @@ export class RecipeService {
     }
 
 
+    async findId(id: string): Promise<CommonResponseDto> {
+
+        const [recipe] = await Promise.all([
+            this.prisma.savedRecipe.findUnique({
+                where: {
+                    id: id.toString(),
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    difficulty: true,
+                    cultural_heritage: true,
+                    location: true,
+                    cook_time: true,
+                    servings_portion: true,
+                    ingredients: {
+                        select: {
+                            id:true,
+                            name: true,
+                            is_check: true,
+                        },
+                    },
+                    instructions: {
+                        select: {
+                            instruction: true,
+                        },
+                    },
+                },
+            }),
+        ]);
+
+        const formatRecipeDetail = {
+            id: recipe?.id,
+            title: recipe?.title,
+            description: recipe?.description,
+            difficulty: recipe?.difficulty,
+            cultural_heritage: recipe?.cultural_heritage,
+            location: recipe?.location,
+            cook_time: recipe?.cook_time,
+            servings_portion: recipe?.servings_portion,
+            ingredients: recipe?.ingredients,
+            instructions: recipe?.instructions.map(item => item.instruction),
+        }
+
+
+        return {
+            message: 'Success get Recipe Detail',
+            data: formatRecipeDetail,
+        };
+
+    }
+
+
 }
