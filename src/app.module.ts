@@ -5,9 +5,10 @@ import {ProfileModule} from "./app/profile/profile.module";
 import { ConfigModule } from '@nestjs/config';
 import {PantryModule} from "./app/pantry/pantry.module";
 import {RecipeModule} from "./app/recipe/recipe.module";
+import {NotificationModule} from "./app/notification/notification.module";
 
 @Module({
-  imports: [AuthModule,HomeModule,ProfileModule,PantryModule,RecipeModule],
+  imports: [AuthModule,HomeModule,ProfileModule,PantryModule,RecipeModule,NotificationModule],
   controllers: [],
   providers: [],
 })
