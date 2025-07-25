@@ -34,8 +34,3 @@ services:
 volumes:
     pgdata:
 
-networks:
-    web:
-        external: true
-    database:
-        external: true
