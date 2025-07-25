@@ -2,6 +2,7 @@ const Constants = {
   Security: {
     DEFAULT_SECRET_KEY:
       '1a854e81ee169fe2fd85478f56dfbe8040a551220b9f78683a586acaf21353f6',
+    OPENROUTER_AI_API: 'Bearer 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',
   },
   ErrorMessages: {
     Auth: {

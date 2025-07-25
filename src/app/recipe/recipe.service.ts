@@ -1,9 +1,8 @@
 import {Injectable, UnprocessableEntityException} from '@nestjs/common';
 import {PrismaService} from '../../prisma/prisma.service';
-import * as fs from 'fs';
-import * as path from 'path';
 import {Prisma, SavedRecipeIngredient} from '@prisma/client';
 import {CommonResponseDto} from "../../dtos/common-response-dto";
+import {generateRecipes, regenerateRecipes} from "../../helper/ai-api-to-json";
 
 @Injectable()
 export class RecipeService {
@@ -90,39 +89,9 @@ export class RecipeService {
                 return item?.name;
             });
 
-            const filePath = path.join(process.cwd(), 'initial_recipe_suggestion.txt');
 
-            let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
+            const parsed = await generateRecipes(formatToarray)
 
-
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer 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',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    'model': 'openai/gpt-4o-mini',
-                    'messages': [
-                        {
-                            'role': 'system',
-                            'content': initialPrompt,
-                        },
-                        {
-                            'role': 'user',
-                            'content': `this the ingredient ${formatToarray}`,
-                        },
-
-                    ],
-                }),
-            });
-
-            const data = await response.json();
-
-            const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
-
-
-            const parsed = JSON.parse(jsonString);
 
 
             for (let i = 0; i < Number(parsed["recipes"].length); i++) {
@@ -298,44 +267,9 @@ export class RecipeService {
             return item?.name;
         });
 
-        const filePath = path.join(process.cwd(), 'initial_recipe_regenerate_suggestion.txt');
-
-        let initialPrompt = await fs.readFileSync(filePath, 'utf-8');
+        const parsed = await regenerateRecipes(formatToarray)
 
 
-
-
-     // try {
-         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-             method: 'POST',
-             headers: {
-                 'Authorization': 'Bearer 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',
-                 'Content-Type': 'application/json',
-             },
-             body: JSON.stringify({
-                 'model': 'openai/gpt-4o-mini',
-                 temperature: 1.0, // Kreatifitas tinggi
-                 top_p: 0.95,      // Variasi alternatif
-                 messages: [
-                     {
-                         role: 'system',
-                         content: `${initialPrompt}\n\nRandomness Seed: ${Math.floor(Math.random() * 100000)}`
-                     },
-                     {
-                         role: 'user',
-                         content: `this the ingredient ${formatToarray}`,
-                     },
-                 ],
-             }),
-         });
-
-
-
-        const data = await response.json();
-            const jsonString = data['choices'][0]['message']['content'].replace(/```json\n?/, '').replace(/```$/, ''); // misalnya masih berupa string
-
-
-            const parsed = JSON.parse(jsonString);
 
 
         await this.prisma.savedRecipeInstruction.deleteMany({
