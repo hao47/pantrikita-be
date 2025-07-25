@@ -50,7 +50,7 @@ model SavedRecipe {
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
-  user         User                     @relation(fields: [user_id], references: [id])
+  user         User                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   ingredients  SavedRecipeIngredient[]
   instructions SavedRecipeInstruction[]
 }
@@ -63,7 +63,7 @@ model SavedRecipeIngredient {
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  saved_recipe SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+  savedRecipe SavedRecipe @relation(fields: [saved_recipe_id], references: [id], onDelete: Cascade)
 }
 
 model SavedRecipeInstruction {
@@ -72,7 +72,7 @@ model SavedRecipeInstruction {
   instruction     String
   created_at      DateTime    @default(now())
   updated_at      DateTime    @updatedAt
-  saved_recipe    SavedRecipe @relation(fields: [saved_recipe_id], references: [id])
+  savedRecipe     SavedRecipe @relation(fields: [saved_recipe_id], references: [id], onDelete: Cascade)
 }
 
 model Notification {
